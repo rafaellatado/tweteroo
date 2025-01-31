@@ -123,17 +123,32 @@ app.put('/tweets/:id', async (req, res) => {
   }
 
   try {
-    const tweetExists = await db.collection('tweets').findOne({ _id: new ObjectId(id) })
-    if (!tweetExists) {
-      return res.status(404).send('Tweet not found :(')
+    const result = await db.collection('tweets').updateOne({ _id: new ObjectId(id) }, { $set: tweetUpdate })
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send("'Tweet not found :('");
     }
 
-    await db.collection('tweets').updateOne({ _id: new ObjectId(id) }, { $set: tweetUpdate })
-    res.status(204).send('Tweet successfully updated.')
+    res.status(204).send('Tweet successfully updated!')
 
   } catch (err) {
     return res.status(500).send(err.message);
   }
+})
+
+app.delete('/tweets/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+		const result = await db.collection("tweets").deleteOne({ _id: new ObjectId(id) })
+
+    if (result.deletedCount === 0) return res.sendStatus(404);
+
+		res.status(204).send("Tweet successfully deleted!")
+
+	 } catch (error) {
+	  res.status(500).send(error)
+	 }
 })
 
 const PORT = process.env.PORT || 5000;
